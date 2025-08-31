@@ -8,18 +8,21 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+# Garante o SDK compatível com <TargetFramework>net6.0</TargetFramework>
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '6.x'
+
 - script: dotnet restore
   displayName: 'dotnet restore'
 
-# Se você tem .sln na raiz, mantenha; caso tenha um .csproj, aponte para ele.
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+- script: dotnet build -c $(buildConfiguration) --no-restore
+  displayName: 'dotnet build'
 
-# PUBLICAÇÃO para uma pasta conhecida do pipeline
-# Troque **/*.csproj pelo caminho exato do seu projeto, se preferir
-- script: dotnet publish **/*.csproj -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)
+- script: dotnet publish $(Build.SourcesDirectory)/pipelines-dotnet-core.csproj \
+          -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)
   displayName: 'dotnet publish -> $(Build.ArtifactStagingDirectory)'
 
-# Agora sim, publique o artefato da pasta produzida acima
 - publish: $(Build.ArtifactStagingDirectory)
   artifact: WebApp
